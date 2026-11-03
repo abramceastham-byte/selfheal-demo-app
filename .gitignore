@@ -7,3 +7,4 @@ __pycache__/
 .gemini/
 gha-creds-*.json
 pr_body.md
+gemini-artifacts/
