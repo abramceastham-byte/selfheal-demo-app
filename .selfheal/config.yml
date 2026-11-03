@@ -1,0 +1,9 @@
+mode: approval
+max_attempts_per_bug: 3
+agent: gemini            # gemini | claude-code | codex
+protected_files:
+  - .github/workflows/**
+  - .selfheal/**
+  - .env*
+notifications:
+  channel: discord

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Reviews</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  .product { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  .product h2 { margin: 0 0 .25rem; font-size: 1.1rem; }
+  .rating { font-weight: 600; margin: .5rem 0; }
+  .error { color: #b00020; }
+  button { cursor: pointer; }
+  form { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-top: .5rem; }
+  input[type=text] { flex: 1; min-width: 8rem; }
+</style>
+</head>
+<body>
+<h1>Product Reviews</h1>
+<div id="products">Loading…</div>
+<script>
+async function loadProducts() {
+  const res = await fetch('/products');
+  const products = await res.json();
+  const root = document.getElementById('products');
+  root.innerHTML = '';
+  for (const p of products) {
+    const el = document.createElement('div');
+    el.className = 'product';
+    el.innerHTML = `
+      <h2></h2><div class="desc"></div>
+      <div class="rating" id="rating-${p.id}"></div>
+      <button data-rating="${p.id}">Show average rating</button>
+      <form data-review="${p.id}">
+        <select name="rating">${[5,4,3,2,1].map(n => `<option>${n}</option>`).join('')}</select>
+        <input type="text" name="comment" placeholder="Comment (optional)">
+        <button type="submit">Add review</button>
+      </form>`;
+    el.querySelector('h2').textContent = p.name;
+    el.querySelector('.desc').textContent = p.description;
+    root.appendChild(el);
+  }
+}
+
+async function showRating(id) {
+  const out = document.getElementById('rating-' + id);
+  const res = await fetch(`/products/${id}/rating`);
+  if (!res.ok) {
+    out.className = 'rating error';
+    out.textContent = `Could not load rating (HTTP ${res.status})`;
+    return;
+  }
+  const data = await res.json();
+  out.className = 'rating';
+  out.textContent = `★ ${data.average_rating} (${data.review_count} reviews)`;
+}
+
+document.addEventListener('click', e => {
+  const id = e.target.dataset && e.target.dataset.rating;
+  if (id) showRating(id);
+});
+
+document.addEventListener('submit', async e => {
+  const id = e.target.dataset && e.target.dataset.review;
+  if (!id) return;
+  e.preventDefault();
+  const f = new FormData(e.target);
+  await fetch(`/products/${id}/reviews`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({rating: Number(f.get('rating')), comment: f.get('comment')}),
+  });
+  e.target.reset();
+  showRating(id);
+});
+
+loadProducts();
+</script>
+</body>
+</html>
