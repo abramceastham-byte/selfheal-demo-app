@@ -65,6 +65,13 @@ def test_average_rating_single_review(client):
     assert data["review_count"] == 1
 
 
+def test_average_rating_zero_reviews(client):
+    pid = make_product(client)["id"]
+    data = client.get(f"/products/{pid}/rating").json()
+    assert data["average_rating"] == 0
+    assert data["review_count"] == 0
+
+
 def test_average_rating_multiple_reviews(client):
     pid = make_product(client)["id"]
     for rating in (5, 4, 4):
