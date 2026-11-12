@@ -74,6 +74,13 @@ def test_average_rating_multiple_reviews(client):
     assert data["review_count"] == 3
 
 
+def test_average_rating_no_reviews(client):
+    pid = make_product(client)["id"]
+    data = client.get(f"/products/{pid}/rating").json()
+    assert data["average_rating"] == 0
+    assert data["review_count"] == 0
+
+
 def test_rating_unknown_product_404(client):
     assert client.get("/products/999/rating").status_code == 404
 
