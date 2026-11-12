@@ -81,3 +81,13 @@ def test_rating_unknown_product_404(client):
 def test_sentry_disabled_without_dsn(monkeypatch):
     monkeypatch.delenv("SENTRY_DSN", raising=False)
     assert main.init_sentry() is False
+
+
+def test_average_rating_no_reviews(client):
+    pid = make_product(client)["id"]
+    res = client.get(f"/products/{pid}/rating")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["average_rating"] == 0
+    assert data["review_count"] == 0
+
